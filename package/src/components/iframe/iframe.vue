@@ -29,6 +29,7 @@
 </template>
 
 <script>
+var i = 1
 export default {
   props: {
     options: {
@@ -48,23 +49,19 @@ export default {
   },
   computed: {
     getBaseStyle() {
-      // 获取z-index
-      this.resetZIndex()
       const op = this.options
       const styleBase = {
         left: op.offset[0] + 'px',
         top: op.offset[1] + 'px',
         margin: op.offset[2],
-        zIndex: this.zindex,
+        zIndex: this.zindex * i,
         width: op.area[0],
         height: op.area[1]
       }
       let a = { ...styleBase }
+      i++
       return this.mergeJson(a, this.addStyle)
     }
-  },
-  mounted() {
-    this.resetZIndex()
   },
   methods: {
     divDown(event) {
@@ -100,7 +97,7 @@ export default {
         }
         o.style.left = left + 'px'
         o.style.top = top + 'px'
-        this.resetZIndex()
+        // this.resetZIndex()
       }
     },
     divUp() {
@@ -138,16 +135,19 @@ export default {
       return y
     },
     resetZIndex() {
-      let max = 500
-      let keys = ['vl-notify-iframe']
-      let doms = document.querySelectorAll('.' + keys[0]) // vl-notify-iframe
-      for (let i = 0, len = doms.length; i < len; i++) {
-        let value = parseInt(this.getStyle(doms[i].id, 'z-index'))
-        if (max < value) {
-          max = value
+      let doms = document.getElementsByClassName('vl-notify-iframe')
+      let domsList = []
+      let domsIndex = 0
+      for (let j = 0, len = doms.length; j < len; j++) {
+        domsList.push(parseInt(this.getStyle(doms[j].id, 'z-index')))
+        if (this.options.id === doms[j].id) {
+          domsIndex = j
         }
       }
-      this.zindex = max + 1
+      let max = domsList.reduce((a, b) => {
+        return b > a ? b : a
+      })
+      doms[domsIndex].style['z-index'] = max + 1
     },
     async close() {
       if (typeof (this.options.cancel) === 'function') {
@@ -201,8 +201,7 @@ export default {
             this.addStyle = {
               left: 960 + (i + 1) * 30 + 'px',
               top: 'tpx',
-              margin: 't',
-              zIndex: this.zindex + 1
+              margin: 't'
             }
           }
         }
@@ -213,7 +212,7 @@ export default {
           margin: 't'
         }
       }
-
+      this.resetZIndex()
       this.maxMiniState = 0
     }
   }
